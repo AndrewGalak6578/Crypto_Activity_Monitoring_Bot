@@ -1,0 +1,28 @@
+{
+  "name": "crypto_activity_monitoring_bot",
+  "version": "1.0.0",
+  "description": "Bot which will check your activities in crypto sphere and tell you if you need to do some of them, or check existing",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AndrewGalak6578/Crypto_Activity_Monitoring_Bot.git"
+  },
+  "keywords": [
+    "Discord",
+    "Crypto",
+    "Activities",
+    "Bot"
+  ],
+  "author": "AndrewGalak6578 and Shinyboi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AndrewGalak6578/Crypto_Activity_Monitoring_Bot/issues"
+  },
+  "homepage": "https://github.com/AndrewGalak6578/Crypto_Activity_Monitoring_Bot#readme",
+  "dependencies": {
+    "discord.js": "^14.12.1"
+  }
+}
