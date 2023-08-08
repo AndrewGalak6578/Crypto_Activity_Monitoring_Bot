@@ -5,9 +5,9 @@ const { error } = require('console');
 
 const channelId = '1136349594465337354';
 
-function createNotification(project) {
+function createNotification(project, color = '#FF0000') {
   return new EmbedBuilder()
-    .setColor('#FF0000')
+    .setColor(color)
     .setTitle('НАПОМИНАНИЕ ПРИОРИТЕТ - ' + project.приоритет)
     .setDescription(`Название проекта: ${project.название}\nОписание задачи: ${project.описание_задачи}\nСтатус задачи: ${project.статус_задачи}\nСсылка: ${project.ссылка}\n ID: ${project.project_id}`);
 };
@@ -114,15 +114,15 @@ client.on('interactionCreate', async (interaction) => {
     const project = client.projectsData.find(p => p.project_id === projectId && p.user_id === interaction.user.id);
 
     if (!project) {
-        await interaction.reply('Проект с указанным ID не найден или у вас нет прав на его изменение.');
-        return;
+      await interaction.reply('Проект с указанным ID не найден или у вас нет прав на его изменение.');
+      return;
     }
 
     project.статус_задачи = newStatus;
     writeDataToFile({ projects: client.projectsData }); // сохраняем изменения в файл
 
     await interaction.reply(`Статус проекта с ID ${projectId} успешно изменен на "${newStatus}".`);
-};
+  };
 
   if (commandName === 'show_projects') {
     const projectStatus = interaction.options.getString('статус-проекта');
@@ -130,14 +130,14 @@ client.on('interactionCreate', async (interaction) => {
 
     let filteredProjects;
     if (projectStatus === 'получены награды') {
-        filteredProjects = userProjects.filter(project => project.статус_задачи === 'Готово, вознаграждение получено в размере');
+      filteredProjects = userProjects.filter(project => project.статус_задачи === 'Готово, вознаграждение получено в размере');
     } else {
-        filteredProjects = userProjects.filter(project => project.статус_задачи !== 'Готово, вознаграждение получено в размере');
+      filteredProjects = userProjects.filter(project => project.статус_задачи !== 'Готово, вознаграждение получено в размере');
     }
 
     if (filteredProjects.length === 0) {
-        await interaction.reply('У вас нет проектов с выбранным статусом.');
-        return;
+      await interaction.reply('У вас нет проектов с выбранным статусом.');
+      return;
     }
     if (filteredProjects.length === 0) {
       await interaction.reply('У вас нет проектов.');
@@ -192,28 +192,26 @@ client.on('interactionCreate', async (interaction) => {
   }
 
   if (commandName === 'send_notification') {
-    // Получение названия проекта из опций команды
+    // Получение ID проекта из опций команды
     const projectId = options.getInteger('id-проекта');
 
-    // Поиск проектов с соответствующим названием
-    const projects = client.projectsData.filter(project => project.project_id === projectId);
+    // Поиск проекта с соответствующим ID и ID пользователя
+    const project = client.projectsData.find(p => p.project_id === projectId && p.user_id === interaction.user.id);
 
-    // Проверка, найдены ли какие-либо проекты
-    if (projects.length === 0) {
-      await interaction.reply('Проект с таким названием не найден.');
+    // Проверка, найден ли проект
+    if (!project) {
+      await interaction.reply('Проект с таким ID не найден или он не принадлежит вам.');
       return;
     }
 
-    // Отправка уведомлений для каждого найденного проекта
+    // Отправка уведомления для найденного проекта
     const channel = client.channels.cache.get(channelId);
     if (channel) {
-      for (const project of projects) {
-        const notification = createNotification(project);
-        await channel.send({ content: `<@${project.user_id}>`, embeds: [notification] });
-      }
+      const notification = createNotification(project);
+      await channel.send({ content: `<@${project.user_id}>`, embeds: [notification] });
     }
 
-    await interaction.reply('Уведомления отправлены.');
+    await interaction.reply('Уведомление отправлено.');
   };
 
   if (commandName === 'pong') {
@@ -250,6 +248,8 @@ client.on('interactionCreate', async (interaction) => {
       client.projectsData.push(projectData);
       // Ваш код для обработки команды /pong с аргументами
       await interaction.reply(`Вы ввели аргументы: ${arg1}, ${arg2}, ${arg3}, ${arg4}, ${arg5}, ${arg6}`);
+      const notification = createNotification(projectData, '#00FF00');
+      await interaction.followUp({ content: `Сделано`, embeds: [notification] });
       writeDataToFile({ projects: client.projectsData });
     } catch (error) {
       console.error('Ошибка при выполнении команды /pong:', error);
@@ -347,37 +347,37 @@ client.once('ready', async () => {
           description: 'укажите статус выведенных проектов',
           required: true,
           choices: [
-            {name: 'получены награды', value: 'получены награды'},
-            {name: 'не получены награды', value: 'не получены награды'},
+            { name: 'получены награды', value: 'получены награды' },
+            { name: 'не получены награды', value: 'не получены награды' },
           ]
         }
       ]
-    }); 
+    });
     const changeStatusCommand = await client.application.commands.create({
       name: 'change_status',
       description: 'Изменяет статус вашего проекта',
       options: [
-          {
-              type: 4,
-              name: 'id-проекта',
-              description: 'ID проекта, который вы хотите изменить',
-              required: true,
-          },
-          {
-              type: 3,
-              name: 'статус-проекта',
-              description: 'Новый статус проекта',
-              required: true,
-              choices: [
-                  { name: 'выполнил и жду вознаграждения', value: 'выполнил и жду вознаграждения' },
-                  { name: 'Выполнил 1 раз, надо выполнить еще пару раз', value: 'Выполнил 1 раз, надо выполнить еще пару раз' },
-                  { name: 'Выполнил несколько раз, надо еще парочку', value: 'Выполнил несколько раз, надо еще парочку' },
-                  { name: 'Готово, вознаграждение получено в размере', value: 'Готово, вознаграждение получено в размере' },
-              ]
-          }
+        {
+          type: 4,
+          name: 'id-проекта',
+          description: 'ID проекта, который вы хотите изменить',
+          required: true,
+        },
+        {
+          type: 3,
+          name: 'статус-проекта',
+          description: 'Новый статус проекта',
+          required: true,
+          choices: [
+            { name: 'выполнил и жду вознаграждения', value: 'выполнил и жду вознаграждения' },
+            { name: 'Выполнил 1 раз, надо выполнить еще пару раз', value: 'Выполнил 1 раз, надо выполнить еще пару раз' },
+            { name: 'Выполнил несколько раз, надо еще парочку', value: 'Выполнил несколько раз, надо еще парочку' },
+            { name: 'Готово, вознаграждение получено в размере', value: 'Готово, вознаграждение получено в размере' },
+          ]
+        }
       ]
-  });
-    
+    });
+
   } catch (error) {
     console.error('Ошибка при создании slash-команды:', error);
   };
